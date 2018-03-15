@@ -1,47 +1,31 @@
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"                                                                              "
-"      _ __   ___  _____   _(_)_ __ ___       ___ ___  _ __  / _(_) __ _       "
-"     | '_ \ / _ \/ _ \ \ / / | '_ ` _ \     / __/ _ \| '_ \| |_| |/ _` |      "
-"     | | | |  __/ (_) \ V /| | | | | | |   | (_| (_) | | | |  _| | (_| |      "
-"     |_| |_|\___|\___/ \_/ |_|_| |_| |_|    \___\___/|_| |_|_| |_|\__, |      "
-"                                                                  |___/       "
-"                                                                              "
-"          http://stevenocchipinti.com                                         "
-"          https://github.com/stevenocchipinti/nvim                            "
-"                                                                              "
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"============================================================================"
+"  
+"  N       E       O                                      V       I      M
+"
+"============================================================================"
+"  Forked with love from Steve Occhipinti (github.com/stevenocchipinti)
+"  https://github.com/millyrowboat/dotvim                            "
+"============================================================================"
 
 call plug#begin('~/.config/nvim/plugged')
-Plug 'ctrlpvim/ctrlp.vim'
 Plug 'scrooloose/nerdtree'
-Plug 'neomake/neomake'
 Plug 'vim-airline/vim-airline' | Plug 'vim-airline/vim-airline-themes'
 Plug 'tpope/vim-commentary'
-Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 Plug 'vim-scripts/matchit.zip'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'godlygeek/tabular'
-Plug 'mattn/emmet-vim'
-Plug 'bogado/file-line'
-Plug 'mhinz/vim-startify'
-
+Plug '/usr/local/opt/fzf'
+Plug 'junegunn/fzf.vim'
+Plug 'rafi/awesome-vim-colorschemes'
 " Technology specific plugins
 Plug 'vim-ruby/vim-ruby'
-Plug 'ecomba/vim-ruby-refactoring'
-Plug 'tpope/vim-rake'
-Plug 'tpope/vim-rails'
 Plug 'tpope/vim-markdown'
-Plug 'tangledhelix/vim-octopress'
 Plug 'pangloss/vim-javascript'
 Plug 'othree/yajs.vim'
 Plug 'moll/vim-node'
 Plug 'mxw/vim-jsx'
-Plug 'prettier/vim-prettier'
-Plug 'StanAngeloff/php.vim'
-Plug 'styled-components/vim-styled-components'
-Plug 'hail2u/vim-css3-syntax'
 Plug 'dag/vim-fish'
 call plug#end()
 
@@ -78,7 +62,7 @@ set undolevels=1000     " How many undos
 set undoreload=10000    " number of lines to save for undo
 
 " COLOR!
-colorscheme tomorrow-night
+colorscheme nord
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -171,12 +155,6 @@ autocmd FileType octopress,markdown,gitcommit setlocal spell
 autocmd FileType octopress,markdown,gitcommit setlocal textwidth=80
 
 
-" Just the stuff I use from vim-unimparied
-map ]l :lnext
-map [l :lprevious
-map ]q :cnext
-map [q :cprevious
-
 " Set a nicer foldtext function
 set foldtext=MinimalFoldText()
 function! MinimalFoldText()
@@ -208,15 +186,6 @@ map =x :%!xmllint -format -
 map <silent> =w :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
 
 
-" Format javascript with prettier
-autocmd BufWritePre
-  \ *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md
-  \ PrettierAsync
-let g:prettier#config#semi = 'false'
-let g:prettier#config#jsx_bracket_same_line = 'false'
-command! WW noautocmd w " To save without Prettier (or use `:noa w`)
-
-
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                            PLUGIN CONFIGURATION                              "
@@ -229,28 +198,10 @@ let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+,\(^\|\s\s\)ntuser\.\S\+'
 autocmd FileType netrw set nolist
 
 
-" CTRL-P
-let g:ctrlp_user_command = [
-\  '.git',
-\  'cd %s && git ls-files . -co --exclude-standard',
-\  'find %s -type f'
-\]
-map <leader><C-P> <C-P><C-\>w
-
-
 " NERDTREE PLUGIN - (mnemonic: Files)
 nmap <leader>f :NERDTreeToggle
 nmap <leader>F :NERDTreeFind
 
-
-" NEOMAKE
-let g:neomake_javascript_enabled_makers = ['eslint']
-autocmd! BufWritePost * Neomake
-
-
-" GREP (with fugitive)
-map <leader>g :Ggrep!  <Bar> copen
-map <leader>G :Ggrep!  **/*
 
 
 " VIM-JSX
@@ -269,13 +220,20 @@ let g:airline_left_sep=''
 let g:airline_right_sep=''
 
 
-" EMMET
-" `<C-q>` is a decent, less used alternative to `<C-y>` (the default)
-" I use `<C-y>` a fair bit to scroll the buffer and don't want the lag.
-"let g:user_emmet_leader_key='<C-q>'
-" Even better leader key!
-let g:user_emmet_leader_key='<C-\>'
-
-
 " STARTIFT
 let g:startify_session_persistence = 1
+
+"" fzf
+" Use ripgrep instead of default find command to traverse file system while respecting .gitignore
+let $FZF_DEFAULT_COMMAND = '
+  \ rg --column --line-number --files --no-ignore --hidden --follow
+  \ --glob "!{.git,node_moduels}/*" '
+" --column            : show column numbers
+" --line-number       : show line numbers
+" --files             : search each file that would be searched (but don't search)
+" --hidden            : search hidden files and directories
+" --follow            : follow symlinks
+" --glob:   include or exclude files for searching that match the specified glob
+
+" Map Ctrl P to :Files
+nnoremap <silent> <C-P> :Files<CR> 
