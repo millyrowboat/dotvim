@@ -20,13 +20,19 @@ Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'rafi/awesome-vim-colorschemes'
 " Technology specific plugins
-Plug 'vim-ruby/vim-ruby'
 Plug 'tpope/vim-markdown'
 Plug 'pangloss/vim-javascript'
 Plug 'othree/yajs.vim'
 Plug 'moll/vim-node'
 Plug 'mxw/vim-jsx'
 Plug 'dag/vim-fish'
+Plug 'w0rp/ale'
+Plug 'prettier/vim-prettier'
+Plug 'digitaltoad/vim-pug'
+Plug 'wincent/terminus'
+Plug 'derekwyatt/vim-scala'
+Plug 'leafgarland/typescript-vim'
+Plug 'neoclide/coc.nvim', {'do': { -> coc#util#install()}}
 call plug#end()
 
 
@@ -34,7 +40,7 @@ call plug#end()
 "                           STANDARD VIM SETTINGS                              "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-set ts=2 sw=2           " Use 2 spaces for tabs
+set ts=2 sw=2           " Use 4 spaces for tabs
 set expandtab           " Use spaces instead of tab characters
 set nowrap              " (Dont) Wrap the display lines (not actual text)
 set nu                  " Show line numbers
@@ -54,6 +60,7 @@ set secure              " Make sure those project .vimrc's are safe
 set list                " Show `listchars` characters
 set listchars=tab:├─,trail:·
 set showbreak=⤿
+set hlsearch            " Search highlighting
 
 " Make vim remember undos, even when the file is closed!
 set undofile            " Save undo's after file closes
@@ -62,7 +69,7 @@ set undolevels=1000     " How many undos
 set undoreload=10000    " number of lines to save for undo
 
 " COLOR!
-colorscheme nord
+colorscheme deus
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -116,6 +123,20 @@ map <leader>Z :set nospell
 " :Q is an accidental error for :q
 cnoreabbrev Q q
 
+" Set ts and sw
+function! ToggleTS()
+    if &l:sw == 2
+        set ts=4 sw=4
+    else
+        set ts=2 sw=2
+    endif
+
+    echo "Set to " . &l:sw
+    let g:airline_section_y='Spaces: ' . &l:sw
+    :AirlineRefresh
+endfunction
+
+map <leader>2 :call ToggleTS()<CR>
 
 " Q is another common accidental error to launch :ex mode - which I don't use
 nnoremap Q <nop>
@@ -135,6 +156,22 @@ map <leader>O O
 " Easier way to toggle highlighted search
 map <leader>h :set hls!<bar>set hls?
 
+" Easily move between windows with Ctrl-hjkl
+set splitbelow
+set splitright
+map <C-j> <C-W>j
+map <C-k> <C-W>k
+map <C-h> <C-W>h
+map <C-l> <C-W>l
+
+" Keeps highlighting on till you turn it off with ,/
+nmap <silent> ,/ :nohlsearch<CR>
+
+" insert a new line at the end of the file using leader A
+map <leader>A Go
+
+" Move cursor to matched string when searching
+set incsearch
 
 " Shortcuts for debugging
 autocmd FileType ruby map <leader>d orequire 'pry'; binding.pry;puts ""
@@ -148,6 +185,7 @@ autocmd BufEnter *.rb,*.js syn match error contained "\<debugger\>"
 
 
 " Filetype specific
+au BufRead,BufNewFile *.sbt set filetype=scala
 autocmd BufNewFile,BufRead *.markdown,*.textile setlocal filetype=octopress
 autocmd FileType octopress,markdown map <leader>= yyp:s/./=/g
 autocmd FileType octopress,markdown map <leader>- yyp:s/./-/g
@@ -173,15 +211,6 @@ endfunction
 " Format JSON - filter the file through Python to format it
 map =j :%!python -m json.tool
 
-
-" Format Ruby Hash - convert to json and run the above python script
-map =r :%s/=>/:/g:%!python -m json.tool
-
-
-" Format XML - filter the file through xmllint to indent XML
-map =x :%!xmllint -format -
-
-
 " Remove un-needed whitespace
 map <silent> =w :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
 
@@ -202,10 +231,26 @@ autocmd FileType netrw set nolist
 nmap <leader>f :NERDTreeToggle
 nmap <leader>F :NERDTreeFind
 
+" ALE Plugin
 
+let g:ale_linters = {
+\  'javascript': ['eslint', 'flow', 'prettier']
+\}
+
+" Use eslint to fix JS errors
+let g:ale_fixers = {
+\   'javascript': ['prettier']
+\}
+
+" Fix files automatically on save
+let g:ale_fix_on_save = 1
+" Prettier config globals
 
 " VIM-JSX
 let g:jsx_ext_required = 0
+
+" VIM-JAVASCRIPT
+let g:javascript_plugin_flow = 1
 
 
 " VIM-CSS3-SYNTAX
@@ -237,3 +282,133 @@ let $FZF_DEFAULT_COMMAND = '
 
 " Map Ctrl P to :Files
 nnoremap <silent> <C-P> :Files<CR> 
+
+" Prettier
+autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue Prettier
+let g:prettier#config#tab_width = 4
+"
+"
+" COC
+" if hidden is not set, TextEdit might fail.
+set hidden
+
+" Some servers have issues with backup files, see #649
+set nobackup
+set nowritebackup
+
+" Better display for messages
+set cmdheight=2
+
+" Smaller updatetime for CursorHold & CursorHoldI
+set updatetime=300
+
+" don't give |ins-completion-menu| messages.
+set shortmess+=c
+
+" always show signcolumns
+set signcolumn=yes
+
+" Use tab for trigger completion with characters ahead and navigate.
+" Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use <c-space> to trigger completion.
+inoremap <silent><expr> <c-space> coc#refresh()
+
+" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
+" Coc only does snippet and additional edit on confirm.
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+
+" Use `[c` and `]c` to navigate diagnostics
+nmap <silent> [c <Plug>(coc-diagnostic-prev)
+nmap <silent> ]c <Plug>(coc-diagnostic-next)
+
+" Remap keys for gotos
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+" Use K to show documentation in preview window
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  else
+    call CocAction('doHover')
+  endif
+endfunction
+
+" Highlight symbol under cursor on CursorHold
+autocmd CursorHold * silent call CocActionAsync('highlight')
+
+" Remap for rename current word
+nmap <leader>rn <Plug>(coc-rename)
+
+augroup mygroup
+  autocmd!
+  " Setup formatexpr specified filetype(s).
+  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+  " Update signature help on jump placeholder
+  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+augroup end
+
+" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
+xmap <leader>a  <Plug>(coc-codeaction-selected)
+nmap <leader>a  <Plug>(coc-codeaction-selected)
+
+" Remap for do codeAction of current line
+nmap <leader>ac  <Plug>(coc-codeaction)
+" Fix autofix problem of current line
+nmap <leader>qf  <Plug>(coc-fix-current)
+
+" Use `:Format` to format current buffer
+command! -nargs=0 Format :call CocAction('format')
+
+" Use `:Fold` to fold current buffer
+command! -nargs=? Fold :call     CocAction('fold', <f-args>)
+
+" use `:OR` for organize import of current buffer
+command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
+
+" Add diagnostic info for https://github.com/itchyny/lightline.vim
+let g:lightline = {
+      \ 'colorscheme': 'wombat',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'cocstatus', 'readonly', 'filename', 'modified' ] ]
+      \ },
+      \ 'component_function': {
+      \   'cocstatus': 'coc#status'
+      \ },
+      \ }
+
+
+
+" Using CocList
+" Show all diagnostics
+nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
+" Manage extensions
+nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
+" Show commands
+nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
+" Find symbol of current document
+nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
+" Search workspace symbols
+nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
+" Do default action for next item.
+nnoremap <silent> <space>j  :<C-u>CocNext<CR>
+" Do default action for previous item.
+nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
+" Resume latest coc list
+nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
