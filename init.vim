@@ -9,8 +9,8 @@
 
 call plug#begin('~/.config/nvim/plugged')
 Plug 'scrooloose/nerdtree'
-Plug 'vim-airline/vim-airline' | Plug 'vim-airline/vim-airline-themes'
 Plug 'tpope/vim-commentary'
+Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 Plug 'vim-scripts/matchit.zip'
@@ -18,9 +18,7 @@ Plug 'editorconfig/editorconfig-vim'
 Plug 'godlygeek/tabular'
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
-Plug 'rafi/awesome-vim-colorschemes'
 " Technology specific plugins
-Plug 'tpope/vim-markdown'
 Plug 'pangloss/vim-javascript'
 Plug 'othree/yajs.vim'
 Plug 'moll/vim-node'
@@ -28,11 +26,12 @@ Plug 'mxw/vim-jsx'
 Plug 'dag/vim-fish'
 Plug 'w0rp/ale'
 Plug 'prettier/vim-prettier'
-Plug 'digitaltoad/vim-pug'
 Plug 'wincent/terminus'
 Plug 'derekwyatt/vim-scala'
 Plug 'leafgarland/typescript-vim'
 Plug 'neoclide/coc.nvim', {'do': { -> coc#util#install()}}
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
+Plug 'rainglow/vim'
 call plug#end()
 
 
@@ -61,6 +60,9 @@ set list                " Show `listchars` characters
 set listchars=tab:├─,trail:·
 set showbreak=⤿
 set hlsearch            " Search highlighting
+set number
+set linespace=3
+set termguicolors
 
 " Make vim remember undos, even when the file is closed!
 set undofile            " Save undo's after file closes
@@ -69,12 +71,13 @@ set undolevels=1000     " How many undos
 set undoreload=10000    " number of lines to save for undo
 
 " COLOR!
-colorscheme deus
+colorscheme gruvbox
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                     NEOVIM SPECIFIC (mostly bugfixes)                        "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 if has("nvim")
   " Live search and replace!
@@ -106,8 +109,6 @@ else
   " Without this, you could use ':w !sudo tee %'
   command! W w !sudo tee % > /dev/null
 
-  " Neovim has this on by default, but vim does not
-  set t_Co=256
 endif
 
 
@@ -174,13 +175,8 @@ map <leader>A Go
 set incsearch
 
 " Shortcuts for debugging
-autocmd FileType ruby map <leader>d orequire 'pry'; binding.pry;puts ""
-autocmd FileType ruby map <leader>D Orequire 'pry'; binding.pry;puts ""
-autocmd FileType ruby map <leader>s osave_screenshot("/tmp/screenshot.png", full: true)
-autocmd FileType ruby map <leader>S Osave_screenshot("/tmp/screenshot.png", full: true)
 autocmd FileType javascript map <leader>d odebugger;
 autocmd FileType javascript map <leader>D Odebugger;
-autocmd BufEnter *.rb syn match error contained "\<binding.pry\>"
 autocmd BufEnter *.rb,*.js syn match error contained "\<debugger\>"
 
 
@@ -412,3 +408,8 @@ nnoremap <silent> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
+
+
+" MARKDOWN PREVIEW 
+
+nmap <C-m> <Plug>MarkdownPreview
