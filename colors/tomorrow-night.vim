@@ -241,7 +241,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 
 	" Vim Highlighting
 	call <SID>X("Normal", s:foreground, s:background, "")
-	call <SID>X("LineNr", s:selection, s:line, "")
+	call <SID>X("LineNr", s:selection, "", "")
 	call <SID>X("NonText", s:selection, "", "")
 	call <SID>X("SpecialKey", s:selection, "", "")
 	call <SID>X("Search", s:background, s:yellow, "")
@@ -259,7 +259,6 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	call <SID>X("MatchParen", "", s:selection, "")
 	call <SID>X("Folded", s:comment, s:background, "")
 	call <SID>X("FoldColumn", "", s:background, "")
-	call <SID>X("SpellBad", s:red, "NONE", "underline")
 	if version >= 700
 		call <SID>X("CursorLine", "", s:line, "none")
 		call <SID>X("CursorColumn", "", s:line, "none")
@@ -481,7 +480,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	" Git
 	call <SID>X("diffAdded", s:green, "", "")
 	call <SID>X("diffRemoved", s:red, "", "")
-	call <SID>X("gitcommitSummary", s:yellow, "", "")
+	call <SID>X("gitcommitSummary", "", "", "bold")
 
 	" Delete Functions
 	delf <SID>X
